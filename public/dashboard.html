@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QuizCraft Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>body { font-family: 'Inter', sans-serif; } .hide { display: none; }</style>
+</head>
+<body class="bg-gray-100">
+    <div id="quiz-list-view" class="p-8 max-w-4xl mx-auto">
+        <header class="flex justify-between items-center mb-8">
+            <h1 class="text-4xl font-bold">QuizCraft <span class="text-yellow-500">Manager</span></h1>
+            <button id="logout-btn-list" class="bg-red-500 text-white px-4 py-2 rounded font-semibold">Logout</button>
+        </header>
+        <div class="bg-white p-6 rounded-lg shadow-md mb-8">
+            <h2 class="text-2xl font-bold mb-4">Create New Quiz</h2>
+            <form id="create-quiz-form" class="flex items-center space-x-4">
+                <input name="name" placeholder="New Quiz Name" class="p-2 border rounded w-full" required>
+                <button type="submit" class="bg-black text-white px-5 py-2 rounded font-semibold whitespace-nowrap hover:bg-gray-800">Create Quiz</button>
+            </form>
+        </div>
+        <div class="bg-white p-6 rounded-lg shadow-md">
+            <h2 class="text-2xl font-bold mb-4">Existing Quizzes</h2>
+            <table class="w-full text-left"><thead class="bg-gray-100"><tr><th class="p-3">ID</th><th class="p-3">Name</th><th class="p-3">Actions</th></tr></thead><tbody id="quiz-list-table"></tbody></table>
+        </div>
+    </div>
+    <div id="quiz-detail-view" class="hide p-8 max-w-7xl mx-auto">
+        <header class="flex justify-between items-center mb-8">
+            <div><button id="back-to-list-btn" class="text-yellow-600 font-semibold mb-2">&larr; Back to Quiz List</button><h1 id="quiz-detail-title" class="text-4xl font-bold"></h1></div>
+            <button id="logout-btn-detail" class="bg-red-500 text-white px-4 py-2 rounded font-semibold">Logout</button>
+        </header>
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <div class="bg-white p-6 rounded-lg shadow-md text-center"><p class="text-sm text-gray-500">Status</p><p id="status-display" class="text-3xl font-bold">Finished</p></div>
+            <div class="bg-white p-6 rounded-lg shadow-md text-center"><p class="text-sm text-gray-500">Join Code</p><p id="join-code-display" class="text-3xl font-bold text-yellow-600">-</p></div>
+            <div class="bg-white p-6 rounded-lg shadow-md text-center"><p class="text-sm text-gray-500">Players</p><p id="players-display" class="text-3xl font-bold">0</p></div>
+            <div class="bg-white p-6 rounded-lg shadow-md text-center"><p class="text-sm text-gray-500">Questions</p><p id="questions-count-display" class="text-3xl font-bold">0</p></div>
+        </div>
+        <div class="bg-white p-6 rounded-lg shadow-md mb-8">
+            <h2 class="text-2xl font-bold mb-4">Controls</h2>
+            <div class="flex flex-wrap gap-4">
+                <button id="start-btn" class="bg-blue-600 text-white px-6 py-3 rounded font-bold">Prepare Quiz</button>
+                <button id="launch-btn" class="bg-green-600 text-white px-6 py-3 rounded font-bold" disabled>Launch Quiz</button>
+                <button id="end-btn" class="bg-red-600 text-white px-6 py-3 rounded font-bold" disabled>End Quiz</button>
+                <a id="results-btn" href="#" class="bg-purple-600 text-white px-6 py-3 rounded font-bold">Download CSV</a>
+            </div>
+        </div>
+        <div class="bg-white p-6 rounded-lg shadow-md">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-2xl font-bold" id="question-form-title">Add New Question</h2>
+                <button id="cancel-edit-btn" class="text-sm text-red-500 underline hide">Cancel Edit</button>
+            </div>
+            <form id="question-form" class="bg-gray-50 p-6 rounded-lg border">
+                <input type="hidden" name="questionId" id="edit-question-id">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <textarea name="text" id="q-text" placeholder="Question Text" class="p-2 border rounded w-full md:col-span-2" required></textarea>
+                    <input name="options" id="q-options" placeholder="Options (comma separated)" class="p-2 border rounded w-full md:col-span-2" required>
+                    <input name="correctOptionIndex" id="q-correct" type="number" min="0" placeholder="Correct Index (0-based)" class="p-2 border rounded w-full" required>
+                    <input name="timeLimit" id="q-time" type="number" min="1" placeholder="Time (s)" class="p-2 border rounded w-full" value="30">
+                    <input name="score" id="q-score" type="number" min="0" placeholder="Points" class="p-2 border rounded w-full" value="10">
+                    <input name="negativeScore" id="q-neg" type="number" min="0" placeholder="Negative Points" class="p-2 border rounded w-full" value="0">
+                    <input name="questionImage" id="q-img" type="file" accept="image/*" class="p-2 border rounded w-full md:col-span-2">
+                </div>
+                <button type="submit" id="save-question-btn" class="mt-4 bg-black text-white px-5 py-2 rounded font-semibold hover:bg-gray-800">Add Question</button>
+            </form>
+            <h3 class="text-xl font-bold mt-8 mb-4">Existing Questions</h3>
+            <div class="overflow-x-auto"><table class="w-full text-left"><thead class="bg-gray-100"><tr><th class="p-3">ID</th><th class="p-3">Text</th><th class="p-3">Image</th><th class="p-3">Actions</th></tr></thead><tbody id="questions-table"></tbody></table></div>
+        </div>
+    </div>
+    <script src="/js/dashboard.js"></script>
+</body>
+</html>

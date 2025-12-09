@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QuizCraft Leaderboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@700;900&display=swap');
+        body { margin: 0; padding: 0; overflow: hidden; font-family: 'Montserrat', sans-serif; background-color: #1a1a1a; }
+        
+        /* Animation Background (Same as Home) */
+        .animation-container { position: fixed; width: 100vw; height: 100vh; background: #1a1a1a; overflow: hidden; z-index: -1; }
+        .diagonal-slice { position: absolute; top: 0; right: 0; width: 120%; height: 100%; background: #FFD700; clip-path: polygon(60% 0, 100% 0, 100% 100%, 25% 100%); z-index: 1; }
+        .halftone-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-image: radial-gradient(#000 10%, transparent 11%), radial-gradient(#000 10%, transparent 11%); background-size: 20px 20px; background-position: 0 0, 10px 10px; opacity: 0.1; z-index: 2; pointer-events: none; }
+        .starburst { position: absolute; top: 50%; right: -10%; width: 80vh; height: 80vh; background: #FF8C00; clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%); transform: translate(-50%, -50%); animation: rotateSlow 20s linear infinite; opacity: 0.3; z-index: 1; }
+        
+        /* Floating Shapes */
+        .shape { position: absolute; z-index: 3; animation: float 6s ease-in-out infinite; }
+        .shape-cross { color: #FFD700; font-size: 3rem; top: 20%; left: 10%; animation-delay: 0s; }
+        .shape-star { color: #fff; font-size: 2rem; bottom: 15%; left: 20%; animation-delay: 1s; }
+        .shape-circle { width: 20px; height: 20px; border: 4px solid #FF8C00; border-radius: 50%; top: 15%; right: 40%; animation-delay: 2s; z-index: 4; }
+        .shape-triangle { width: 0; height: 0; border-left: 15px solid transparent; border-right: 15px solid transparent; border-bottom: 30px solid #333; bottom: 30%; right: 10%; animation-delay: 3s; z-index: 4; }
+
+        /* Leaderboard Card */
+        .content-wrapper { position: relative; z-index: 20; width: 100%; height: 100vh; overflow-y: auto; padding: 2rem; display: flex; flex-direction: column; align-items: center; }
+        .lb-card {
+            width: 100%; max-width: 56rem; 
+            background: #2d2d2d;
+            border: 4px solid #000;
+            box-shadow: 10px 10px 0px #FFD700;
+            border-radius: 1rem;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        /* Table Styling */
+        table { width: 100%; border-collapse: collapse; color: white; }
+        th { text-transform: uppercase; font-weight: 900; border-bottom: 2px solid #444; padding: 1rem; color: #FFD700; text-align: left; }
+        td { padding: 1rem; border-bottom: 1px solid #444; font-weight: 700; }
+        tr:last-child td { border-bottom: none; }
+        
+        .rank-1 { color: #FFD700; font-size: 1.5rem; }
+        .rank-2 { color: #C0C0C0; font-size: 1.3rem; }
+        .rank-3 { color: #CD7F32; font-size: 1.3rem; }
+
+        .qc-btn {
+            background: #FFD700; color: #000; padding: 1rem 2rem; border-radius: 0.5rem;
+            font-weight: 900; text-transform: uppercase; letter-spacing: 1px;
+            border: 2px solid #000; transition: all 0.2s; display: inline-block; text-decoration: none;
+            box-shadow: 4px 4px 0px #000;
+        }
+        .qc-btn:hover { transform: translate(-2px, -2px); box-shadow: 6px 6px 0px #000; background: #fff; }
+
+        @keyframes rotateSlow { from { transform: translate(-50%, -50%) rotate(0deg); } to { transform: translate(-50%, -50%) rotate(360deg); } }
+        @keyframes float { 0% { transform: translateY(0px) rotate(0deg); } 50% { transform: translateY(-20px) rotate(10deg); } 100% { transform: translateY(0px) rotate(0deg); } }
+        @media (max-width: 768px) { .diagonal-slice { clip-path: polygon(0 60%, 100% 40%, 100% 100%, 0 100%); width: 100%; } .starburst { top: 20%; right: -30%; } }
+    </style>
+</head>
+<body>
+
+    <div class="animation-container">
+        <div class="halftone-overlay"></div>
+        <div class="diagonal-slice"></div>
+        <div class="starburst"></div>
+        <div class="shape shape-cross">✖</div>
+        <div class="shape shape-star">★</div>
+        <div class="shape shape-circle"></div>
+        <div class="shape shape-triangle"></div>
+    </div>
+
+    <div class="content-wrapper">
+        <h1 class="text-5xl font-black text-white mb-2 uppercase drop-shadow-lg" style="text-shadow: 4px 4px 0 #000;">Leaderboard</h1>
+        <h2 id="leaderboard-quiz-name" class="text-2xl text-yellow-400 font-bold mb-8 uppercase tracking-widest bg-black/50 px-4 py-1 rounded"></h2>
+        
+        <div class="lb-card">
+            <table>
+                <thead>
+                    <tr>
+                        <th class="w-24">Rank</th>
+                        <th>Name</th>
+                        <th class="text-right">Score</th>
+                    </tr>
+                </thead>
+                <tbody id="leaderboard-body"></tbody>
+            </table>
+        </div>
+
+        <div class="text-center pb-8">
+            <a href="/player" class="qc-btn">Play Again</a>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/js/leaderboard.js"></script>
+</body>
+</html>

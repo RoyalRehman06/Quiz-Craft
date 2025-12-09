@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QuizCraft Player</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@700;900&display=swap');
+        body { font-family: 'Montserrat', sans-serif; background-color: #1a1a1a; }
+        
+        /* QuizCraft Theme Classes */
+        .qc-card {
+            background: #2d2d2d;
+            border: 2px solid #444;
+            border-radius: 1rem;
+            padding: 2rem;
+            box-shadow: 0 10px 0px rgba(0,0,0,0.5); /* Comic Pop Shadow */
+        }
+        
+        .auth-input {
+            width: 100%;
+            background: #1a1a1a;
+            border: 2px solid #444;
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            color: #fff;
+            font-weight: bold;
+            transition: all 0.2s ease;
+        }
+        .auth-input:focus {
+            outline: none;
+            border-color: #FFD700;
+            box-shadow: 0 0 0 2px rgba(255, 215, 0, 0.3);
+        }
+        
+        .qc-btn {
+            width: 100%;
+            background: #FFD700;
+            color: #000;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border: 2px solid #FFD700;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+        .qc-btn:hover {
+            background: #FFC107;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 0px #b58900;
+        }
+        .qc-btn:active {
+            transform: translateY(2px);
+            box-shadow: none;
+        }
+
+        .hide { display: none; }
+        
+        /* Option Buttons */
+        .option-btn {
+            width: 100%;
+            padding: 1rem;
+            text-align: left;
+            background: #333;
+            border: 2px solid #444;
+            color: white;
+            font-weight: 700;
+            border-radius: 0.75rem;
+            transition: all 0.2s;
+        }
+        .option-btn:hover:not(:disabled) {
+            border-color: #FFD700;
+            background: #3a3a3a;
+        }
+        
+        /* Animations */
+        .loader { display: flex; justify-content: center; align-items: flex-end; height: 60px; }
+        .loader div { width: 10px; height: 10px; margin: 0 4px; background-color: #FFD700; border-radius: 50%; animation: bounce 1.2s infinite ease-in-out; }
+        .loader .bar2 { animation-delay: -.1s; } .loader .bar3 { animation-delay: -.2s; } .loader .bar4 { animation-delay: -.3s; } .loader .bar5 { animation-delay: -.4s; }
+        @keyframes bounce { 0%, 40%, 100% { transform: scaleY(.4); } 20% { transform: scaleY(1); } }
+    </style>
+</head>
+<body class="text-white min-h-screen flex items-center justify-center p-4">
+
+    <!-- Header -->
+    <header class="fixed top-0 left-0 right-0 flex justify-between items-center bg-[#1a1a1a] border-b-2 border-[#333] p-4 z-10">
+        <a href="/" class="flex items-center cursor-pointer hover:opacity-80 transition-opacity no-underline">
+            <h1 id="quiz-title-display" class="text-xl md:text-2xl font-black uppercase text-yellow-400 tracking-tighter">QuizCraft</h1>
+        </a>
+        <div id="player-count-display" class="font-bold text-gray-400">Players: 0</div>
+    </header>
+
+    <!-- Join Page -->
+    <div id="join-page" class="w-full max-w-md">
+        <div class="qc-card text-center">
+            <h2 class="text-4xl font-black mb-8 text-yellow-400 uppercase">Join Game</h2>
+            <p id="join-error" class="bg-red-500 text-white font-bold p-2 rounded mb-4 hide"></p>
+            
+            <form id="join-form" class="space-y-4">
+                <input id="name-input" placeholder="NICKNAME" class="auth-input" required>
+                <input id="joincode-input" placeholder="GAME CODE" class="auth-input" required style="text-transform: uppercase;">
+                <div class="grid grid-cols-2 gap-4">
+                    <input id="branch-input" placeholder="BRANCH (OPT)" class="auth-input">
+                    <input id="year-input" placeholder="YEAR (OPT)" class="auth-input">
+                </div>
+                <button type="submit" class="qc-btn mt-6">Enter Lobby</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Waiting Page -->
+    <div id="waiting-page" class="hide text-center w-full max-w-md">
+        <div class="qc-card">
+            <h1 id="welcome-message" class="text-3xl font-black mb-2 text-white">Welcome!</h1>
+            <p class="text-gray-400 font-bold mb-8">You are in the lobby.</p>
+            <div class="bg-black/30 p-6 rounded-lg border border-yellow-500/30">
+                <p id="waiting-text" class="text-xl text-yellow-400 animate-pulse font-bold">Waiting for host to launch...</p>
+                <div class="loader mt-6"><div class="bar1"></div><div class="bar2"></div><div class="bar3"></div><div class="bar4"></div><div class="bar5"></div></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quiz Page -->
+    <div id="quiz-page" class="hide w-full max-w-3xl pt-16">
+        <main class="qc-card">
+            <!-- Header: Question Text & Timer -->
+            <div class="flex flex-col-reverse md:flex-row justify-between items-start gap-4 mb-6">
+                <h2 id="question-text" class="text-2xl md:text-3xl font-bold leading-tight flex-1"></h2>
+                <div class="flex items-center gap-3 bg-black/40 px-4 py-2 rounded-full border border-gray-700">
+                    <span class="text-sm text-gray-400 uppercase font-bold">Time</span>
+                    <span id="timer-display" class="text-2xl font-black text-yellow-400">0s</span>
+                </div>
+            </div>
+
+            <!-- Score Info -->
+            <div id="question-score-display" class="text-sm font-bold text-gray-500 mb-4 uppercase tracking-widest border-b border-gray-700 pb-4"></div>
+            
+            <!-- Image -->
+            <img id="question-image" class="w-full rounded-lg border-2 border-gray-700 mb-6 hide object-cover max-h-80">
+
+            <!-- Options Grid -->
+            <div id="options-container" class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6"></div>
+
+            <!-- Feedback & Next Button -->
+            <div id="feedback-container" class="hide">
+                <div class="p-6 rounded-lg bg-black/40 border-2 border-gray-700 text-center mb-6">
+                    <h3 id="feedback-text" class="text-3xl font-black mb-2"></h3>
+                    <p id="feedback-score" class="text-xl font-bold text-gray-300"></p>
+                </div>
+                <button id="next-question-btn" class="qc-btn">Next Question &rarr;</button>
+            </div>
+
+            <div class="mt-6 text-center">
+                <span class="text-gray-500 font-bold">TOTAL SCORE:</span>
+                <span id="score-display" class="text-2xl font-black text-yellow-400 ml-2">0</span>
+            </div>
+        </main>
+    </div>
+
+    <!-- Finished Page -->
+    <div id="finished-page" class="hide text-center w-full max-w-md">
+        <div class="qc-card">
+            <h1 class="text-4xl font-black mb-2 text-white">GAME OVER</h1>
+            <div class="my-8 py-8 bg-black/30 rounded-lg border border-gray-700">
+                <p class="text-sm text-gray-400 font-bold uppercase tracking-widest mb-2">Final Score</p>
+                <p id="final-score" class="text-7xl font-black text-yellow-400"></p>
+            </div>
+            <a href="/leaderboard" class="qc-btn block text-center no-underline">View Leaderboard</a>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/js/player.js"></script>
+</body>
+</html>
